@@ -44,7 +44,8 @@ def send_to_discord(webhook_url, account_number, details):
              f"Location: {details['location']}\n"
              f"Company: {details['company']}\n"
              f"Website: {details['website']}\n"
-             f"Date of Birth: {details['dob']}"
+             f"Date of Birth: {details['dob']}\n"
+             "----------------------------------"
     )
     if result:
         logging.info(f"Message sent successfully for Account {account_number}")
