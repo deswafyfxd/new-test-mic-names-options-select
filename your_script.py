@@ -61,7 +61,9 @@ while account_count < num_accounts:
     first_name = fake.first_name()
     last_name = fake.last_name()
     username = generate_username(first_name, last_name, num_random_digits)
-    dob = unique_dobs[account_count]
+
+    # Ensure we have a unique date of birth for each account
+    dob = unique_dobs[account_count % len(unique_dobs)]
     dob_str = f"{dob[0]:04d}-{dob[1]:02d}-{dob[2]:02d}"
 
     # Check username availability
@@ -76,6 +78,7 @@ while account_count < num_accounts:
         account_count += 1
     else:
         print(f"Username {username} is not available. Trying again...")
-
-    # Ensure unique date combinations
-    unique_dobs = generate_unique_dobs(num_accounts - account_count)
+        
+    if account_count < num_accounts:
+        unique_dobs = generate_unique_dobs(num_accounts - account_count)
+    time.sleep(1)  # Delay to prevent rapid retrying
