@@ -14,14 +14,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Function to generate unique date of birth combinations
 def generate_unique_dobs(count):
-    unique_dobs = set()
-    while len(unique_dobs) < count:
-        year = random.randint(1990, 2000)
-        month = random.randint(1, 12)
-        day = random.randint(1, 28)  # Simplified to avoid dealing with different month lengths
-        dob = (year, month, day)
-        unique_dobs.add(dob)
-    return list(unique_dobs)
+    years = list(range(1990, 2001))
+    months = list(range(1, 13))
+    days = list(range(1, 29))  # Simplified to avoid dealing with different month lengths
+    random.shuffle(years)
+    random.shuffle(months)
+    random.shuffle(days)
+    
+    unique_dobs = []
+    for i in range(count):
+        dob = (years[i % len(years)], months[i % len(months)], days[i % len(days)])
+        unique_dobs.append(dob)
+    return unique_dobs
 
 # Function to check username availability (default to True)
 def check_username_availability(username):
