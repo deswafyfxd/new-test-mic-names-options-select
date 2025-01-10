@@ -39,6 +39,7 @@ def send_to_discord(webhook_url, account_number, details):
              f"Last name: {details['last_name']}\n"
              f"Username: {details['username']}\n"
              f"GitHub Username: {details['github_username']}\n"
+             f"Bio: {details['bio']}\n"
              f"Date of Birth: {details['dob']}"
     )
     if result:
@@ -61,6 +62,10 @@ def generate_github_username(first_name, last_name, num_digits):
         # Add 3 random digits if the username is unavailable and num_digits is set to 0
         github_username = generate_username(first_name, last_name, 3)
     return github_username
+
+# Function to generate a random bio
+def generate_random_bio():
+    return fake.sentence(nb_words=10)  # Customize the number of words as needed
 
 # Discord webhook URL
 webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
@@ -96,6 +101,9 @@ while account_count < num_accounts:
     # Generate GitHub username with fallback digits
     github_username = generate_github_username(first_name, last_name, num_github_digits)
 
+    # Generate a random bio
+    github_bio = generate_random_bio()
+
     # Ensure we have a unique date of birth for each account
     dob = unique_dobs[account_count % len(unique_dobs)]
     dob_str = f"{dob[0]:04d}-{dob[1]:02d}-{dob[2]:02d}"
@@ -107,6 +115,7 @@ while account_count < num_accounts:
             "last_name": last_name,
             "username": email_username_full,
             "github_username": github_username,
+            "bio": github_bio,
             "dob": dob_str
         }
         send_to_discord(webhook_url, account_count + 1, account_details)
