@@ -4,9 +4,13 @@ from faker import Faker
 import apprise
 import time
 import string  # Import the string module
+import logging
 
 # Initialize Faker
 fake = Faker('en_IN')
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Function to generate unique date of birth combinations
 def generate_unique_dobs(count):
@@ -27,13 +31,17 @@ def check_username_availability(username):
 def send_to_discord(webhook_url, account_number, details):
     discord_url = f"discord://{webhook_url}"
     notify = apprise.Apprise(discord_url)
-    notify.notify(
+    result = notify.notify(
         body=f"(Account {account_number})\n"
              f"First name: {details['first_name']}\n"
              f"Last name: {details['last_name']}\n"
              f"Username: {details['username']}\n"
              f"Date of Birth: {details['dob']}"
     )
+    if result:
+        logging.info(f"Message sent successfully for Account {account_number}")
+    else:
+        logging.error(f"Failed to send message for Account {account_number}")
 
 # Function to generate a random username with a specified number of random digits
 def generate_username(first_name, last_name, num_digits):
@@ -45,6 +53,14 @@ def generate_username(first_name, last_name, num_digits):
 
 # Discord webhook URL (replace with your actual webhook URL)
 webhook_url = "https://discord.com/api/webhooks/1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
+
+# Test sending a simple message to Discord
+simple_message = apprise.Apprise()
+simple_message.add(f"discord://{webhook_url}")
+if simple_message.notify(body="Test message to ensure Discord setup is working"):
+    logging.info("Test message sent successfully!")
+else:
+    logging.error("Failed to send test message.")
 
 # Number of accounts to generate
 num_accounts = 3
