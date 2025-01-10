@@ -41,6 +41,9 @@ def send_to_discord(webhook_url, account_number, details):
              f"Username: {details['username']}\n"
              f"GitHub Username: {details['github_username']}\n"
              f"Bio: {details['bio']}\n"
+             f"Location: {details['location']}\n"
+             f"Company: {details['company']}\n"
+             f"Website: {details['website']}\n"
              f"Date of Birth: {details['dob']}"
     )
     if result:
@@ -67,6 +70,18 @@ def generate_github_username(first_name, last_name, num_digits):
 # Function to generate a random bio in English
 def generate_random_bio():
     return fake_en.sentence(nb_words=10)  # Customize the number of words as needed
+
+# Function to generate a random location
+def generate_random_location():
+    return fake_en.city()
+
+# Function to generate a random company
+def generate_random_company():
+    return fake_en.company()
+
+# Function to generate a random website
+def generate_random_website():
+    return fake_en.url()
 
 # Discord webhook URL
 webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
@@ -104,6 +119,11 @@ while account_count < num_accounts:
 
     # Generate a random bio in English
     github_bio = generate_random_bio()
+    
+    # Generate random GitHub details
+    github_location = generate_random_location()
+    github_company = generate_random_company()
+    github_website = generate_random_website()
 
     # Ensure we have a unique date of birth for each account
     dob = unique_dobs[account_count % len(unique_dobs)]
@@ -117,6 +137,9 @@ while account_count < num_accounts:
             "username": email_username_full,
             "github_username": github_username,
             "bio": github_bio,
+            "location": github_location,
+            "company": github_company,
+            "website": github_website,
             "dob": dob_str
         }
         send_to_discord(webhook_url, account_count + 1, account_details)
