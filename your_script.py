@@ -6,8 +6,8 @@ import time
 import string
 import logging
 
-# Initialize Faker
-fake = Faker('en_IN')
+# Initialize Faker for English locale
+fake = Faker('en_US')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -63,7 +63,7 @@ def generate_github_username(first_name, last_name, num_digits):
         github_username = generate_username(first_name, last_name, 3)
     return github_username
 
-# Function to generate a random bio
+# Function to generate a random bio in English
 def generate_random_bio():
     return fake.sentence(nb_words=10)  # Customize the number of words as needed
 
@@ -101,7 +101,7 @@ while account_count < num_accounts:
     # Generate GitHub username with fallback digits
     github_username = generate_github_username(first_name, last_name, num_github_digits)
 
-    # Generate a random bio
+    # Generate a random bio in English
     github_bio = generate_random_bio()
 
     # Ensure we have a unique date of birth for each account
