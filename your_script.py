@@ -52,7 +52,7 @@ def generate_username(first_name, last_name, num_digits):
     return f"{username}@outlook.com"
 
 # Discord webhook URL (replace with your actual webhook URL)
-webhook_url = "https://discord.com/api/webhooks/1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
+webhook_url = "discord://1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
 
 # Test sending a simple message to Discord
 simple_message = apprise.Apprise()
