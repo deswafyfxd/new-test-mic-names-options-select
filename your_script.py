@@ -3,7 +3,7 @@ import requests
 from faker import Faker
 import apprise
 import time
-import string  # Import the string module
+import string
 import logging
 
 # Initialize Faker
@@ -30,7 +30,8 @@ def check_username_availability(username):
 # Function to send details to Discord webhook using Apprise
 def send_to_discord(webhook_url, account_number, details):
     discord_url = f"discord://{webhook_url}"
-    notify = apprise.Apprise(discord_url)
+    notify = apprise.Apprise()
+    notify.add(discord_url)
     result = notify.notify(
         body=f"(Account {account_number})\n"
              f"First name: {details['first_name']}\n"
@@ -51,8 +52,8 @@ def generate_username(first_name, last_name, num_digits):
         username += random_digits
     return f"{username}@outlook.com"
 
-# Discord webhook URL (replace with your actual webhook URL)
-webhook_url = "discord://1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
+# Discord webhook URL
+webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
 
 # Test sending a simple message to Discord
 simple_message = apprise.Apprise()
@@ -93,7 +94,7 @@ while account_count < num_accounts:
         send_to_discord(webhook_url, account_count + 1, account_details)
         account_count += 1
     else:
-        print(f"Username {username} is not available. Trying again...")
+        logging.info(f"Username {username} is not available. Trying again...")
         
     if account_count < num_accounts:
         unique_dobs = generate_unique_dobs(num_accounts - account_count)
