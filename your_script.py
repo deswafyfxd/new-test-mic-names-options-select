@@ -20,9 +20,13 @@ def generate_unique_dobs(count):
     unique_dobs = [(years[i], months[i], days[i]) for i in range(count)]
     return unique_dobs
 
-# Function to check username availability (default to True)
-def check_username_availability(username):
-    return True  # Always return True to indicate availability
+# Function to check username availability on GitHub
+def check_github_username_availability(username):
+    url = f"https://api.github.com/users/{username}"
+    response = requests.get(url)
+    if response.status_code == 404:
+        return True  # Username is available
+    return False  # Username is taken
 
 # Function to send details to Discord webhook using Apprise
 def send_to_discord(webhook_url, account_number, details):
@@ -34,6 +38,7 @@ def send_to_discord(webhook_url, account_number, details):
              f"First name: {details['first_name']}\n"
              f"Last name: {details['last_name']}\n"
              f"Username: {details['username']}\n"
+             f"GitHub Username: {details['github_username']}\n"
              f"Date of Birth: {details['dob']}"
     )
     if result:
@@ -47,7 +52,15 @@ def generate_username(first_name, last_name, num_digits):
     if num_digits > 0:
         random_digits = ''.join(random.choices(string.digits, k=num_digits))
         username += random_digits
-    return f"{username}@outlook.com"
+    return username
+
+# Function to generate a GitHub username with fallback to adding digits if initial username is unavailable
+def generate_github_username(first_name, last_name, num_digits):
+    github_username = generate_username(first_name, last_name, num_digits)
+    if not check_github_username_availability(github_username) and num_digits == 0:
+        # Add 3 random digits if the username is unavailable and num_digits is set to 0
+        github_username = generate_username(first_name, last_name, 3)
+    return github_username
 
 # Discord webhook URL
 webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
@@ -63,8 +76,9 @@ else:
 # Number of accounts to generate
 num_accounts = 3
 
-# Number of random digits to append to the username
-num_random_digits = 3  # Customize this as needed
+# Number of random digits to append to the email and GitHub usernames
+num_email_digits = 3  # Customize this as needed for email username
+num_github_digits = 0  # Customize this as needed for GitHub username, 0 means no digits unless the username is taken
 
 # Generate unique date of birth combinations
 unique_dobs = generate_unique_dobs(num_accounts)
@@ -74,23 +88,32 @@ account_count = 0
 while account_count < num_accounts:
     first_name = fake.first_name()
     last_name = fake.last_name()
-    username = generate_username(first_name, last_name, num_random_digits)
+    
+    # Generate email username
+    email_username = generate_username(first_name, last_name, num_email_digits)
+    email_username_full = f"{email_username}@outlook.com"
+    
+    # Generate GitHub username with fallback digits
+    github_username = generate_github_username(first_name, last_name, num_github_digits)
 
     # Ensure we have a unique date of birth for each account
     dob = unique_dobs[account_count % len(unique_dobs)]
     dob_str = f"{dob[0]:04d}-{dob[1]:02d}-{dob[2]:02d}"
 
-    # Check username availability
-    if check_username_availability(username):
+    # Check GitHub username availability
+    if check_github_username_availability(github_username):
         account_details = {
             "first_name": first_name,
             "last_name": last_name,
-            "username": username,
+            "username": email_username_full,
+            "github_username": github_username,
             "dob": dob_str
         }
         send_to_discord(webhook_url, account_count + 1, account_details)
         account_count += 1
     else:
-        logging.info(f"Username {username} is not available. Trying again...")
-
+        logging.info(f"GitHub username {github_username} is not available. Trying again...")
+        
+    if account_count < num_accounts:
+        unique_dobs = generate_unique_dobs(num_accounts - account_count)
     time.sleep(1)  # Delay to prevent rapid retrying
