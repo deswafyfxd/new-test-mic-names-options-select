@@ -6,8 +6,9 @@ import time
 import string
 import logging
 
-# Initialize Faker for English locale
-fake = Faker('en_US')
+# Initialize Faker for English locale for bios and Indian locale for names
+fake_en = Faker('en_US')
+fake_in = Faker('en_IN')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -65,7 +66,7 @@ def generate_github_username(first_name, last_name, num_digits):
 
 # Function to generate a random bio in English
 def generate_random_bio():
-    return fake.sentence(nb_words=10)  # Customize the number of words as needed
+    return fake_en.sentence(nb_words=10)  # Customize the number of words as needed
 
 # Discord webhook URL
 webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
@@ -91,8 +92,8 @@ unique_dobs = generate_unique_dobs(num_accounts)
 # Generate account details
 account_count = 0
 while account_count < num_accounts:
-    first_name = fake.first_name()
-    last_name = fake.last_name()
+    first_name = fake_in.first_name()
+    last_name = fake_in.last_name()
     
     # Generate email username
     email_username = generate_username(first_name, last_name, num_email_digits)
