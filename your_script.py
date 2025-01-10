@@ -3,6 +3,7 @@ import requests
 from faker import Faker
 import apprise
 import time
+import string  # Import the string module
 
 # Initialize Faker
 fake = Faker('en_IN')
