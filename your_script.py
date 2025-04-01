@@ -96,7 +96,7 @@ else:
     logging.error("Failed to send test message.")
 
 # Number of accounts to generate
-num_accounts = 3
+num_accounts = 6
 
 # Number of random digits to append to the email and GitHub usernames
 num_email_digits = 3  # Customize this as needed for email username
