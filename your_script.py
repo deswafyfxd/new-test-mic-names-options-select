@@ -85,7 +85,7 @@ def generate_random_website():
     return fake_en.url()
 
 # Discord webhook URL
-webhook_url = "1249221380491186276/6d2llfGXypQ7hsCBzaiZq4rX7LirwK98X6vRrewv8_NyQ9ypujss4Tj0ysCgJVzXpSH1"
+webhook_url = "1360856791650533418/BtHo74PlUq2TLc-dMsoP240aFP2Con6saaX0QXTBsyRZcA0AzF1k_QRTePxV6UW-Cx7R"
 
 # Test sending a simple message to Discord
 simple_message = apprise.Apprise()
