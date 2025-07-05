@@ -1,27 +1,38 @@
-name: Send Account Details to Discord
+name: Generate Accounts
 
 on:
   push:
   workflow_dispatch:
+    inputs:
+      country:
+        description: 'Select name country (IN/US)'
+        required: true
+        default: 'IN'
+        type: choice
+        options:
+        - IN
+        - US
 
 jobs:
-  send-details:
+  generate-accounts:
     runs-on: ubuntu-latest
+    env:
+      COUNTRY: ${{ inputs.country }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: "3.11"
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install requests faker apprise
 
-    - name: Run script
+    - name: Generate accounts
       run: |
-        python your_script.py
+        python account_generator.py $COUNTRY
