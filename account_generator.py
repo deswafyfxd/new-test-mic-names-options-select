@@ -47,9 +47,9 @@ def check_github_username_availability(username):
 
 def send_to_discord(webhook_url, account_number, details):
     """Send account details to Discord via webhook"""
-    discord_url = f"discord://{webhook_url}"
+    # FIXED: Proper Discord URL formatting
     notify = apprise.Apprise()
-    notify.add(discord_url)
+    notify.add(f"discord://{webhook_url.split('/')[-2]}/{webhook_url.split('/')[-1]}")
     
     message = (
         f"**Account {account_number} ({details['country']})**\n"
@@ -90,6 +90,7 @@ def generate_company(): return fake_en.company()
 def generate_website(): return fake_en.url()
 
 # ===== CONFIGURATION =====
+# FIXED: Get webhook from environment variable
 WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK')
 if not WEBHOOK_URL:
     logging.error("Missing Discord webhook URL!")
@@ -102,9 +103,11 @@ GITHUB_DIGITS = 0
 
 if __name__ == "__main__":
     # Test Discord connection
-    test_msg = apprise.Apprise()
-    test_msg.add(f"discord://{WEBHOOK_URL}")
-    if test_msg.notify(body=f"🚀 Generating {NUM_ACCOUNTS} {country} accounts"):
+    notify_test = apprise.Apprise()
+    # FIXED: Proper URL formatting
+    notify_test.add(f"discord://{WEBHOOK_URL.split('/')[-2]}/{WEBHOOK_URL.split('/')[-1]}")
+    
+    if notify_test.notify(body=f"🚀 Generating {NUM_ACCOUNTS} {country} accounts"):
         logging.info("Discord connection test successful")
     else:
         logging.error("Discord connection failed")
