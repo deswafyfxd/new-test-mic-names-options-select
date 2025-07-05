@@ -5,149 +5,147 @@ import apprise
 import time
 import string
 import logging
-
-# Initialize Faker for English locale for bios and Indian locale for names
-fake_en = Faker('en_US')
-fake_in = Faker('en_IN')
+import sys
+import os
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
-# Function to generate unique date of birth combinations
+# Get country from command-line argument
+country = sys.argv[1] if len(sys.argv) > 1 else 'IN'
+logging.info(f"Generating {country} names")
+
+# Initialize Faker instances based on country
+if country == 'US':
+    name_faker = Faker('en_US')
+    logging.info("Using US names")
+else:  # Default to IN
+    name_faker = Faker('en_IN')
+    logging.info("Using Indian names")
+
+# English Faker for other fields
+fake_en = Faker('en_US')
+
 def generate_unique_dobs(count):
-    years = random.sample(range(1990, 2001), count)  # Ensure unique years
-    months = random.sample(range(1, 13), count)  # Ensure unique months
-    days = random.sample(range(1, 29), count)  # Ensure unique days
-    unique_dobs = [(years[i], months[i], days[i]) for i in range(count)]
-    return unique_dobs
+    """Generate unique date of birth tuples (year, month, day)"""
+    years = random.sample(range(1990, 2001), count)
+    months = random.sample(range(1, 13), count)
+    days = random.sample(range(1, 29), count)
+    return [(years[i], months[i], days[i]) for i in range(count)]
 
-# Function to check username availability on GitHub
 def check_github_username_availability(username):
-    url = f"https://api.github.com/users/{username}"
-    response = requests.get(url)
-    if response.status_code == 404:
-        return True  # Username is available
-    return False  # Username is taken
+    """Check if GitHub username is available"""
+    try:
+        response = requests.get(f"https://api.github.com/users/{username}", timeout=10)
+        return response.status_code == 404
+    except requests.RequestException as e:
+        logging.warning(f"GitHub API request failed: {e}")
+        return False
 
-# Function to send details to Discord webhook using Apprise
 def send_to_discord(webhook_url, account_number, details):
+    """Send account details to Discord via webhook"""
     discord_url = f"discord://{webhook_url}"
     notify = apprise.Apprise()
     notify.add(discord_url)
-    result = notify.notify(
-        body=f"(Account {account_number})\n"
-             f"First name: {details['first_name']}\n"
-             f"Last name: {details['last_name']}\n"
-             f"Username: {details['username']}\n"
-             f"GitHub Username: {details['github_username']}\n"
-             f"Bio: {details['bio']}\n"
-             f"Location: {details['location']}\n"
-             f"Company: {details['company']}\n"
-             f"Website: {details['website']}\n"
-             f"Date of Birth: {details['dob']}\n"
-             "----------------------------------"
+    
+    message = (
+        f"**Account {account_number} ({details['country']})**\n"
+        f"First name: {details['first_name']}\n"
+        f"Last name: {details['last_name']}\n"
+        f"Email: {details['email']}\n"
+        f"GitHub: {details['github_username']}\n"
+        f"Bio: {details['bio']}\n"
+        f"Location: {details['location']}\n"
+        f"Company: {details['company']}\n"
+        f"Website: {details['website']}\n"
+        f"DOB: {details['dob']}\n"
+        "--------------------------"
     )
-    if result:
-        logging.info(f"Message sent successfully for Account {account_number}")
-    else:
-        logging.error(f"Failed to send message for Account {account_number}")
+    
+    return notify.notify(body=message)
 
-# Function to generate a random username with a specified number of random digits
-def generate_username(first_name, last_name, num_digits):
-    username = f"{first_name.lower()}{last_name.lower()}"
+def generate_username(base, num_digits):
+    """Generate username with random digits"""
     if num_digits > 0:
-        random_digits = ''.join(random.choices(string.digits, k=num_digits))
-        username += random_digits
+        return f"{base}{''.join(random.choices(string.digits, k=num_digits))}"
+    return base
+
+def generate_github_username(first, last, num_digits):
+    """Generate GitHub username with availability fallback"""
+    base = f"{first.lower()}{last.lower()}"
+    username = generate_username(base, num_digits)
+    
+    # Add digits if initial username is taken
+    if not check_github_username_availability(username) and num_digits == 0:
+        return generate_username(base, 3)
     return username
 
-# Function to generate a GitHub username with fallback to adding digits if initial username is unavailable
-def generate_github_username(first_name, last_name, num_digits):
-    github_username = generate_username(first_name, last_name, num_digits)
-    if not check_github_username_availability(github_username) and num_digits == 0:
-        # Add 3 random digits if the username is unavailable and num_digits is set to 0
-        github_username = generate_username(first_name, last_name, 3)
-    return github_username
+# Generate random profile details
+def generate_bio(): return fake_en.sentence(nb_words=10)
+def generate_location(): return fake_en.city()
+def generate_company(): return fake_en.company()
+def generate_website(): return fake_en.url()
 
-# Function to generate a random bio in English
-def generate_random_bio():
-    return fake_en.sentence(nb_words=10)  # Customize the number of words as needed
-
-# Function to generate a random location
-def generate_random_location():
-    return fake_en.city()
-
-# Function to generate a random company
-def generate_random_company():
-    return fake_en.company()
-
-# Function to generate a random website
-def generate_random_website():
-    return fake_en.url()
-
-# Discord webhook URL
-webhook_url = "1360856791650533418/BtHo74PlUq2TLc-dMsoP240aFP2Con6saaX0QXTBsyRZcA0AzF1k_QRTePxV6UW-Cx7R"
-
-# Test sending a simple message to Discord
-simple_message = apprise.Apprise()
-simple_message.add(f"discord://{webhook_url}")
-if simple_message.notify(body="Test message to ensure Discord setup is working"):
-    logging.info("Test message sent successfully!")
-else:
-    logging.error("Failed to send test message.")
-
-# Number of accounts to generate
-num_accounts = 6
-
-# Number of random digits to append to the email and GitHub usernames
-num_email_digits = 3  # Customize this as needed for email username
-num_github_digits = 0  # Customize this as needed for GitHub username, 0 means no digits unless the username is taken
-
-# Generate unique date of birth combinations
-unique_dobs = generate_unique_dobs(num_accounts)
-
-# Generate account details
-account_count = 0
-while account_count < num_accounts:
-    first_name = fake_in.first_name()
-    last_name = fake_in.last_name()
+# ===== CONFIGURATION =====
+WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK')
+if not WEBHOOK_URL:
+    logging.error("Missing Discord webhook URL!")
+    exit(1)
     
-    # Generate email username
-    email_username = generate_username(first_name, last_name, num_email_digits)
-    email_username_full = f"{email_username}@outlook.com"
-    
-    # Generate GitHub username with fallback digits
-    github_username = generate_github_username(first_name, last_name, num_github_digits)
+NUM_ACCOUNTS = 6
+EMAIL_DIGITS = 3
+GITHUB_DIGITS = 0
+# =========================
 
-    # Generate a random bio in English
-    github_bio = generate_random_bio()
-    
-    # Generate random GitHub details
-    github_location = generate_random_location()
-    github_company = generate_random_company()
-    github_website = generate_random_website()
-
-    # Ensure we have a unique date of birth for each account
-    dob = unique_dobs[account_count % len(unique_dobs)]
-    dob_str = f"{dob[0]:04d}-{dob[1]:02d}-{dob[2]:02d}"
-
-    # Check GitHub username availability
-    if check_github_username_availability(github_username):
-        account_details = {
-            "first_name": first_name,
-            "last_name": last_name,
-            "username": email_username_full,
-            "github_username": github_username,
-            "bio": github_bio,
-            "location": github_location,
-            "company": github_company,
-            "website": github_website,
-            "dob": dob_str
-        }
-        send_to_discord(webhook_url, account_count + 1, account_details)
-        account_count += 1
+if __name__ == "__main__":
+    # Test Discord connection
+    test_msg = apprise.Apprise()
+    test_msg.add(f"discord://{WEBHOOK_URL}")
+    if test_msg.notify(body=f"🚀 Generating {NUM_ACCOUNTS} {country} accounts"):
+        logging.info("Discord connection test successful")
     else:
-        logging.info(f"GitHub username {github_username} is not available. Trying again...")
+        logging.error("Discord connection failed")
+    
+    # Generate accounts
+    accounts_created = 0
+    unique_dobs = generate_unique_dobs(NUM_ACCOUNTS)
+    
+    while accounts_created < NUM_ACCOUNTS:
+        first_name = name_faker.first_name()
+        last_name = name_faker.last_name()
+        base_username = f"{first_name}{last_name}".lower()
         
-    if account_count < num_accounts:
-        unique_dobs = generate_unique_dobs(num_accounts - account_count)
-    time.sleep(1)  # Delay to prevent rapid retrying
+        # Generate credentials
+        email = f"{generate_username(base_username, EMAIL_DIGITS)}@outlook.com"
+        github_user = generate_github_username(first_name, last_name, GITHUB_DIGITS)
+        
+        if check_github_username_availability(github_user):
+            dob = unique_dobs[accounts_created]
+            dob_str = f"{dob[0]}-{dob[1]:02d}-{dob[2]:02d}"
+            
+            account_details = {
+                "country": country,
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "github_username": github_user,
+                "bio": generate_bio(),
+                "location": generate_location(),
+                "company": generate_company(),
+                "website": generate_website(),
+                "dob": dob_str
+            }
+            
+            # Send to Discord
+            if send_to_discord(WEBHOOK_URL, accounts_created + 1, account_details):
+                logging.info(f"Sent {country} account {accounts_created + 1} to Discord")
+                accounts_created += 1
+            else:
+                logging.error(f"Failed to send account {accounts_created + 1}")
+        else:
+            logging.warning(f"GitHub username {github_user} unavailable, retrying...")
+        
+        time.sleep(2)  # Respect GitHub API rate limits
